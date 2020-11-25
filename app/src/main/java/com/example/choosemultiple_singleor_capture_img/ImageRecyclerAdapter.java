@@ -51,7 +51,7 @@ public class ImageRecyclerAdapter extends RecyclerView.Adapter<ImageRecyclerAdap
             super(itemView);
 
             imageView = itemView.findViewById(R.id.image_View);
-            textView= itemView.findViewById(R.id.category);
+            //textView= itemView.findViewById(R.id.category);
         }
     }
 }

@@ -14,11 +14,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Html;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -90,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(i, 2);
                     recyclerView.setVisibility(View.VISIBLE);
                     imageView.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, "Choose 2 or more photos!", Toast.LENGTH_SHORT).show();
                 }
                 else if (options[item].equals("Cancel")) {
                     dialog.dismiss();
@@ -131,13 +136,48 @@ public class MainActivity extends AppCompatActivity {
                         if (resultCode == Activity.RESULT_OK) {
                             if (data.getClipData() != null) {               //getClipData()- contains an optional list of content URIs if there is more than one item to preview.
                                 int count = data.getClipData().getItemCount();
-                                Toast.makeText(this, ""+count, Toast.LENGTH_SHORT).show();
-                                for (int i = 0; i < count; i++) {
-                                    //filling our uriList
-                                    uriList.add(data.getClipData().getItemAt(i).getUri());
+                                Log.e("count",""+data.getClipData().getItemCount());
+
+                                if(count<6){
+
+                                    Toast.makeText(this, ""+count, Toast.LENGTH_SHORT).show();
+                                    for (int i = 0; i < count; i++) {
+                                        //filling our uriList
+                                        uriList.add(data.getClipData().getItemAt(i).getUri());
+
+                                        Log.e("uri's", ""+data.getClipData().getItemAt(i).getUri());
+
+                                        try {
+                                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),data.getClipData().getItemAt(i).getUri());
+                                            String s = convert(bitmap);
+                                            Log.e("string", ""+s);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    adapter.notifyDataSetChanged();
                                 }
-                                adapter.notifyDataSetChanged();
+                                else {
+                                    Toast.makeText(this, "You cant select more than 5 photos!", Toast.LENGTH_SHORT).show();
+                                    for (int i = 0; i < 5; i++) {
+                                        //filling our uriList
+                                        uriList.add(data.getClipData().getItemAt(i).getUri());
+
+                                        Log.e("uri's", ""+data.getClipData().getItemAt(i).getUri());
+
+                                        try {
+                                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),data.getClipData().getItemAt(i).getUri());
+                                            String s = convert(bitmap);
+                                            Log.e("string", ""+s);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    adapter.notifyDataSetChanged();
+                                }
                             }
+
+
                         } else if (data.getData() != null) {
                             String imagePath = data.getData().getPath();
                             Toast.makeText(this, ""+imagePath, Toast.LENGTH_SHORT).show();
@@ -149,5 +189,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+    }
+
+    public String convert(Bitmap bitmap) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
+        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
     }
 }
